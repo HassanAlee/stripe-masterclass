@@ -3,6 +3,7 @@ import { httpAction } from "./_generated/server";
 import { Webhook } from "svix";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { api } from "./_generated/api";
+import stripe from "../lib/stripe";
 
 const http = httpRouter();
 const clerkWebhook = httpAction(async (ctx, request) => {
@@ -36,7 +37,17 @@ const clerkWebhook = httpAction(async (ctx, request) => {
     const email = email_addresses[0]?.email_address;
     const name = `${first_name || ""} ${last_name || ""}`.trim();
     try {
-      await ctx.runMutation(api.users.createUser, { name, email, clerkId: id });
+      const customer = await stripe.customers.create({
+        name,
+        email,
+        metadata: { clerkId: id },
+      });
+      await ctx.runMutation(api.users.createUser, {
+        name,
+        email,
+        clerkId: id,
+        stripeCustomerId: customer.id,
+      });
     } catch (error) {
       console.log("error saving user to convex", error);
       return new Response("Error saving user", { status: 500 });
