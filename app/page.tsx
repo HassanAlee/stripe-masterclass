@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import PurchaseButton from "@/components/shared/PurchaseButton";
 export default async function Home() {
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
   const courses = await convex.query(api.courses.getCourses);
@@ -56,8 +57,7 @@ export default async function Home() {
                 </Badge>
 
                 <SignedIn>
-                  {/* <PurchaseButton courseId={course._id} /> */}
-                  Enroll
+                  <PurchaseButton courseId={course._id} />
                 </SignedIn>
 
                 <SignedOut>
