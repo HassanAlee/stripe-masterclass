@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import stripe from "../lib/stripe";
+import rateLimit from "../lib/ratelimit";
 
 export const createCheckoutSession = action({
   args: { courseId: v.id("courses") },
@@ -12,6 +13,10 @@ export const createCheckoutSession = action({
       clerkId: identity.subject,
     });
     if (!user) throw new ConvexError("User not found");
+    const rateLimitKey = `checkout-rate-limit-${user._id}`;
+    const { success, reset } = await rateLimit.limit(rateLimitKey);
+    if (!success) throw new Error(`Too many requests. Try again in ${reset}s.`);
+
     const course = await ctx.runQuery(api.courses.getCourseById, {
       courseId: args.courseId,
     });

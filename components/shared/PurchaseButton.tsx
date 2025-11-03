@@ -7,6 +7,7 @@ import { useAction, useQuery } from "convex/react";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function PurchaseButton({
   courseId,
@@ -35,7 +36,18 @@ export default function PurchaseButton({
         throw new Error("Failed to create checkout url");
       }
     } catch (error) {
-      console.log("error creating checkout url", error);
+      if (
+        error instanceof Error &&
+        error.message.includes("Too many requests")
+      ) {
+        toast.error("Too mant requests, Please try again after a while.", {
+          duration: 3000,
+        });
+      } else if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong. Please try again");
+      }
     } finally {
       setIsLoading(false);
     }
