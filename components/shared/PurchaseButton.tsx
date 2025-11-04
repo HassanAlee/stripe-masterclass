@@ -26,7 +26,7 @@ export default function PurchaseButton({
     userData ? { userId: userData?._id, courseId } : "skip"
   ) || { hasAccess: false };
   const handlePurchase = async () => {
-    if (!user) return alert("Please login to purchase");
+    if (!user) return toast.error("Please login to purchase");
     setIsLoading(true);
     try {
       const { checkoutUrl } = await createCheckoutSession({ courseId });
@@ -40,7 +40,7 @@ export default function PurchaseButton({
         error instanceof Error &&
         error.message.includes("Too many requests")
       ) {
-        toast.error("Too mant requests, Please try again after a while.", {
+        toast.error("Too many requests, Please try again after a while.", {
           duration: 3000,
         });
       } else if (error instanceof Error) {
