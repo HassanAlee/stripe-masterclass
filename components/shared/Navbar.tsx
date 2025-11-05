@@ -34,7 +34,7 @@ export default function Navbar() {
           <span className="hidden sm:inline">Courses</span>
         </Link>
         <Link
-          href={"/courses"}
+          href={"/pro"}
           className="flex items-center gap-1 px-3 py-2 rounded-md text-muted-foreground hover:text-primary hover:bg-secondary transition-colors"
         >
           <Zap className="size-4" />
