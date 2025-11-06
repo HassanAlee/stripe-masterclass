@@ -11,13 +11,17 @@ import {
 import { PRO_PLANS } from "@/constants";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { Check, Loader2Icon } from "lucide-react";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 export default function ProPage() {
   const { user, isLoaded } = useUser();
   const [loadingPlan, setLoadingPlan] = useState("");
+  const createCheckoutSession = useAction(
+    api.stripe.createProPlanCheckoutSession
+  );
   const userData = useQuery(
     api.users.getUserByClerkId,
     user ? { clerkId: user.id } : "skip"
@@ -32,8 +36,33 @@ export default function ProPage() {
   );
   const yearlySubscriptionActive =
     subscription?.status == "active" && subscription.planType == "year";
-  const handlePlanSelection = (plan: "month" | "year") => {
-    console.log(plan);
+  const handlePlanSelection = async (plan: "month" | "year") => {
+    if (!user) {
+      toast.error("Please login to select a plan", {
+        duration: 3000,
+        position: "top-right",
+      });
+      return;
+    }
+    setLoadingPlan(plan);
+    try {
+      const session = await createCheckoutSession({ planId: plan });
+      if (session.checkoutUrl) {
+        window.location.href = session.checkoutUrl;
+      }
+    } catch (error) {
+      console.log("error creating checkout session", error);
+      if (
+        error instanceof Error &&
+        error.message.includes("Rate limit exceeded")
+      ) {
+        toast.error("Too many requests, Please try again after a while.");
+        return;
+      }
+      toast.error("Something went wrong creating checkout session.");
+    } finally {
+      setLoadingPlan("");
+    }
   };
   return (
     <div className="container mx-auto px-4 py-16 max-w-6xl h-screen">
