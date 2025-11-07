@@ -27,7 +27,7 @@ export default defineSchema({
   subscriptions: defineTable({
     userId: v.id("users"),
     planType: v.union(v.literal("month"), v.literal("year")),
-    currentPeriosStart: v.number(),
+    currentPeriodStart: v.number(),
     currentPeriodEnd: v.number(),
     stripeSubscriptionId: v.string(),
     status: v.string(),
