@@ -34,6 +34,9 @@ export async function POST(req: Request) {
           event.type
         );
         break;
+      case "customer.subscription.deleted":
+        handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        break;
       default:
         console.log("Unhandled event type", event.type);
         break;
@@ -90,8 +93,10 @@ async function handleSubscriptionUpsert(
       planType: subscription.items.data[0].plan.interval as "month" | "year",
       currentPeriodStart: subscription.items.data[0].current_period_start,
       currentPeriodEnd: subscription.items.data[0].current_period_end,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      cancelAtPeriodEnd: !!subscription.cancel_at,
     });
+    console.log("this is suc", subscription);
+
     console.log(
       `Successfully processed ${eventType} for subscription ${subscription.id}.`
     );
@@ -100,5 +105,15 @@ async function handleSubscriptionUpsert(
       `Error processing ${eventType} for subscription ${subscription.id}.`,
       error
     );
+  }
+}
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  try {
+    await convex.mutation(api.subscriptions.removeSubscription, {
+      stripeSubscriptionId: subscription.id,
+    });
+    console.log(`Successfully deleted subscription ${subscription.id}`);
+  } catch (error) {
+    console.error(`Error deleting subscription ${subscription.id}:`, error);
   }
 }
