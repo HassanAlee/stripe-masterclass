@@ -50,14 +50,14 @@ const clerkWebhook = httpAction(async (ctx, request) => {
         clerkId: id,
         stripeCustomerId: customer.id,
       });
-      // if (process.env.NODE_ENV === "development") {
-      await resend.emails.send({
-        from: "MasterClass <onboarding@resend.dev>",
-        to: email,
-        subject: "Welcome to MasterClass",
-        react: WelcomeEmail({ name, url: process.env.NEXT_PUBLIC_APP_URL! }),
-      });
-      // }
+      if (process.env.NODE_ENV === "development") {
+        await resend.emails.send({
+          from: "MasterClass <onboarding@resend.dev>",
+          to: email,
+          subject: "Welcome to MasterClass",
+          react: WelcomeEmail({ name, url: process.env.NEXT_PUBLIC_APP_URL! }),
+        });
+      }
     } catch (error) {
       console.log("error saving user to convex", error);
       return new Response("Error saving user", { status: 500 });

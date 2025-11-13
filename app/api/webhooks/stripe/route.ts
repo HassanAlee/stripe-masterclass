@@ -72,6 +72,7 @@ async function handleCheckoutSessionCompleted(
     stripePurchaseId: session.id,
   });
   if (
+    process.env.NODE_ENV == "development" &&
     session.metadata &&
     session.metadata.courseTitle &&
     session.metadata.courseImage
@@ -122,7 +123,7 @@ async function handleSubscriptionUpsert(
       `Successfully processed ${eventType} for subscription ${subscription.id}.`
     );
     const isCreation = eventType === "customer.subscription.created";
-    if (isCreation) {
+    if (isCreation && process.env.NODE_ENV == "development") {
       await resend.emails.send({
         from: "MasterClass <onboarding@resend.dev>",
         to: user.email,
