@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import {
 import { Check, Clock, Rocket, Star } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const SuccessPage = () => {
+function SuccessPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isYearly = searchParams.get("year") === "true";
@@ -37,7 +38,11 @@ const SuccessPage = () => {
     <div className="container mx-auto px-4 py-8 md:py-16 max-w-4xl h-screen">
       <Card className="w-full overflow-hidden">
         <div
-          className={`w-full h-2 ${isYearly ? "bg-gradient-to-r from-purple-500 to-pink-500" : "bg-blue-500"}`}
+          className={`w-full h-2 ${
+            isYearly
+              ? "bg-gradient-to-r from-purple-500 to-pink-500"
+              : "bg-blue-500"
+          }`}
         />
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -73,7 +78,9 @@ const SuccessPage = () => {
                   className="flex items-center space-x-3 text-sm md:text-base"
                 >
                   <Check
-                    className={`flex-shrink-0 h-6 w-6 ${isYearly ? "text-purple-500" : "text-green-500"}`}
+                    className={`flex-shrink-0 h-6 w-6 ${
+                      isYearly ? "text-purple-500" : "text-green-500"
+                    }`}
                   />
                   <span>{benefit}</span>
                 </li>
@@ -96,5 +103,12 @@ const SuccessPage = () => {
       </Card>
     </div>
   );
-};
-export default SuccessPage;
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <SuccessPageContent />
+    </Suspense>
+  );
+}
