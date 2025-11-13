@@ -1,5 +1,8 @@
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import ProPlanActivatedEmail from "@/emails/ProPlanActivatedEmail";
+import PurchaseConfirmationEmail from "@/emails/PurchaseConfirmationEmail";
+import { resend } from "@/lib/resend";
 import stripe from "@/lib/stripe";
 import { ConvexHttpClient } from "convex/browser";
 import Stripe from "stripe";
@@ -68,6 +71,24 @@ async function handleCheckoutSessionCompleted(
     amount: session.amount_total as number,
     stripePurchaseId: session.id,
   });
+  if (
+    session.metadata &&
+    session.metadata.courseTitle &&
+    session.metadata.courseImage
+  ) {
+    await resend.emails.send({
+      from: "MasterClass <onboarding@resend.dev>",
+      to: user.email,
+      subject: "Purchase Confirmed",
+      react: PurchaseConfirmationEmail({
+        customerName: user.name,
+        courseTitle: session.metadata?.courseTitle,
+        courseImage: session.metadata?.courseImage,
+        courseUrl: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}`,
+        purchaseAmount: session.amount_total! / 100,
+      }),
+    });
+  }
 }
 async function handleSubscriptionUpsert(
   subscription: Stripe.Subscription,
@@ -100,6 +121,21 @@ async function handleSubscriptionUpsert(
     console.log(
       `Successfully processed ${eventType} for subscription ${subscription.id}.`
     );
+    const isCreation = eventType === "customer.subscription.created";
+    if (isCreation) {
+      await resend.emails.send({
+        from: "MasterClass <onboarding@resend.dev>",
+        to: user.email,
+        subject: "Welcome to MasterClass Pro!",
+        react: ProPlanActivatedEmail({
+          name: user.name,
+          planType: subscription.items.data[0].plan.interval,
+          currentPeriodStart: subscription.items.data[0].current_period_start,
+          currentPeriodEnd: subscription.items.data[0].current_period_end,
+          url: process.env.NEXT_PUBLIC_APP_URL!,
+        }),
+      });
+    }
   } catch (error) {
     console.log(
       `Error processing ${eventType} for subscription ${subscription.id}.`,
